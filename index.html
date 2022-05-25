@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+<title></title>
+<style>
+body{margin:0;padding:0;overflow:hidden;}
+html, body{height:100%;}
+</style>
+<script type="text/javascript" src="https://tilde-lab.github.io/chemdoodle-optimade-app/math.custom.min.js"></script>
+<script type="text/javascript" src="https://tilde-lab.github.io/chemdoodle-optimade-app/matinfio.min.js"></script>
+<script type="text/javascript" src="JSmol.min.js"></script>
+</head>
+<body>
+<script type="text/javascript">
+
+if (!window.math || !window.MatinfIO) throw new Error("Failed to load requirements");
+
+const logger = {warning: alert.bind(window), error: alert.bind(window)};
+const converter = window.MatinfIO(window.math, logger);
+//const sample = '{"attributes":{"immutable_id":"x","species_at_sites":["Au"],"cartesian_site_positions":[[0,0,0]],"lattice_vectors":[[0,2,2],[2,0,2],[2,2,0]]}}';
+
+function process_data(input){
+
+    const cifdata = converter.to_cif(input);
+    if (!cifdata) return;
+
+    const jmolApplet0 = Jmol.getApplet("jmolApplet0", {
+        width: window.innerWidth,
+        height: window.innerHeight,
+        use: "HTML5"
+    });
+    Jmol.script(jmolApplet0,
+    'background white; load data "optimade"\n' + cifdata + '\nend "optimade" {1 1 1}; select *; label %e; wireframe 0.07; set debug on;'
+    );
+}
+
+// iframe integration:
+// - via postMessage interface
+
+window.addEventListener('message', function(event){
+    const target_data = event.data;
+    try {
+        target_data = JSON.parse(event.data); // do we receive a JSON-object or a JSON-string?
+    } catch (e){}
+
+    process_data(JSON.stringify(target_data));
+});
+
+//process_data(sample);
+</script>
+</body>
+</html>
